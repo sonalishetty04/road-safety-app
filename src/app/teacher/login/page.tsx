@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import type { FC, InputHTMLAttributes, ButtonHTMLAttributes } from "react";
+// import type { FC, InputHTMLAttributes, ButtonHTMLAttributes } from "react";
 import Image from "next/image";
 
 // Remove require/try/catch and Input/Button components

@@ -51,7 +51,7 @@ const BlobBackground: React.FC<{ className?: string }> = ({ className }) => {
     // Increase opacity as user scrolls past the hero section
     const handleScroll = () => {
       if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
+      // const rect = ref.current.getBoundingClientRect();
       // When the top of the blob container is at the top of the viewport, opacity = 1
       // When it's at the bottom of the hero, opacity = 0.2
       const heroHeight = window.innerHeight * 0.7; // adjust as needed

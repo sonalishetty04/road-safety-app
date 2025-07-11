@@ -6,7 +6,7 @@ let Button: FC<ButtonHTMLAttributes<HTMLButtonElement>>;
 try {
   Button = require("@/components/ui/button").Button;
 } catch {
-  Button = (props: any) => (
+  Button = (props: ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props} className="rounded-full font-extrabold px-8 py-4 text-lg shadow-lg transition-all" />
   );
 }
@@ -73,7 +73,7 @@ export default function Module3Page() {
         {slide === 1 && (
           <div className="flex flex-col items-center w-full">
             <h2 className="text-3xl font-extrabold mb-6 text-pink-700 drop-shadow-lg">Spot the Danger!</h2>
-            <p className="mb-8 text-2xl font-bold text-gray-800 text-center">Can you spot what's wrong in this picture?</p>
+            <p className="mb-8 text-2xl font-bold text-gray-800 text-center">Can you spot what&apos;s wrong in this picture?</p>
             <div className="w-full max-w-4xl bg-gray-200 rounded-3xl p-8 mb-8 flex items-center justify-center relative" style={{ minHeight: 400, minWidth: 400 }}>
               <img src="/busy-street.png" alt="Busy street scene" className="rounded-2xl" style={{ width: 400, height: 'auto' }} />
               {/* Helmetless rider hotspot (pixel-based, debug circle) */}
@@ -194,8 +194,8 @@ export default function Module3Page() {
         )}
         {slide === slides.length - 1 && dangerFound && (
           <div className="flex flex-col items-center w-full">
-            <h2 className="text-4xl font-extrabold mb-6 text-green-700 drop-shadow-lg">🎉 Great job! You've completed Module 3!</h2>
-            <p className="mb-8 text-2xl font-bold text-blue-700 text-center">You're on your way to being a Road Safety Star!</p>
+            <h2 className="text-4xl font-extrabold mb-6 text-green-700 drop-shadow-lg">🎉 Great job! You&apos;ve completed Module 3!</h2>
+            <p className="mb-8 text-2xl font-bold text-blue-700 text-center">You&apos;re on your way to being a Road Safety Star!</p>
             <Button
               onClick={() => router.push('/teacher/home')}
               className="bg-pink-300 border-pink-400 text-pink-900 hover:bg-pink-400 rounded-full px-12 py-6 text-2xl font-extrabold shadow-lg mt-4"
