@@ -2,14 +2,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { FC, ButtonHTMLAttributes } from "react";
-let Button: FC<ButtonHTMLAttributes<HTMLButtonElement>>;
-try {
-  Button = require("@/components/ui/button").Button;
-} catch {
-  Button = (props: any) => (
-    <button {...props} className="rounded-full font-extrabold px-8 py-4 text-lg shadow-lg transition-all" />
-  );
-}
+// Remove require/try/catch for Button
+const Button: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => (
+  <button {...props} className="rounded-full font-extrabold px-8 py-4 text-lg shadow-lg transition-all" />
+);
 
 // Sequence builder game data with fun icons
 const sequenceGames = [
