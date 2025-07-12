@@ -76,15 +76,7 @@ export default function HomePage() {
   // Find the highest completed module index
   const highestCompletedIdx = completed.lastIndexOf(true);
 
-  // SVG badge icon for stepper (star + ribbon)
-  const BadgeSVG = (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="13" fill="#FFD700" stroke="#B8860B" strokeWidth="2"/>
-      <polygon points="16,8 18,14 24,14 19,17 21,23 16,19.5 11,23 13,17 8,14 14,14" fill="#fff" stroke="#B8860B" strokeWidth="1"/>
-      <rect x="12" y="24" width="2.5" height="6" rx="1" fill="#B8860B"/>
-      <rect x="17.5" y="24" width="2.5" height="6" rx="1" fill="#B8860B"/>
-    </svg>
-  );
+
 
   return (
     <div className="min-h-screen w-full bg-[#fdf6ee] flex flex-col relative overflow-x-hidden">

@@ -150,15 +150,7 @@ export default function Module1Page() {
     }
   };
 
-  // Button color classes for poll options
-  const pollColors = [
-    "bg-orange-300 border-orange-400 text-orange-900 hover:bg-orange-400",
-    "bg-orange-200 border-orange-300 text-orange-900 hover:bg-orange-300"
-  ];
 
-  // Animation CSS
-  const pollAnimation =
-    "animate-slide-in";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -190,7 +182,7 @@ export default function Module1Page() {
         {slide > 0 && slide <= pollSlides.length && (() => {
           const pollIdx = slide - 1;
           const poll = pollSlides[pollIdx];
-          const { selected, revealed } = pollState[pollIdx];
+          const { selected } = pollState[pollIdx];
           const showAnswer = answerSlides[pollIdx];
           // Alternate mascot side
           const mascotLeft = pollIdx % 2 === 0;
@@ -259,9 +251,9 @@ export default function Module1Page() {
         })()}
         {slide === slides.length - 1 && allQuizzesRevealed && (
           <div className="flex flex-col items-center w-full">
-            <h2 className="text-4xl font-extrabold mb-6 text-orange-700 drop-shadow-lg">Hurray! You've completed Module 1!</h2>
+            <h2 className="text-4xl font-extrabold mb-6 text-orange-700 drop-shadow-lg">Hurray!  You&apos;ve  completed Module 1!</h2>
             <img src="/complete-module.png" alt="Modules Complete Mascot" className="w-72 h-72 object-contain mb-6 " />
-            <p className="mb-8 text-2xl font-bold text-orange-700 text-center">You're on your way to being a Road Safety Star!</p>
+            <p className="mb-8 text-2xl font-bold text-orange-700 text-center">You&apos;re on your way to being a Road Safety Star!</p>
         
           </div>
         )}

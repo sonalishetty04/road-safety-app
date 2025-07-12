@@ -245,9 +245,9 @@ export default function Module2Page() {
         })()}
         {slide === slides.length - 1 && allGamesCorrect && (
           <div className="flex flex-col items-center w-full">
-            <h2 className="text-4xl font-extrabold mb-6 text-amber-700 drop-shadow-lg">Hurray! You've completed Module 2!</h2>
+            <h2 className="text-4xl font-extrabold mb-6 text-amber-700 drop-shadow-lg">Hurray! You&apos;ve completed Module 2!</h2>
             <img src="/complete-module.png" alt="Modules Complete Mascot" className="w-72 h-72 object-contain mb-6" />
-            <p className="mb-8 text-2xl font-bold text-amber-700 text-center">You're on your way to being a Road Safety Star!</p>
+            <p className="mb-8 text-2xl font-bold text-amber-700 text-center">You&apos;re on your way to being a Road Safety Star!</p>
           </div>
         )}
         {/* Navigation */}
