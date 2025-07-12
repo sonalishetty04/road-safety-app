@@ -4,11 +4,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
+const rewardBadges = [
+  "/reward-1.png",
+  "/reward-2.png",
+  "/reward-3.png",
+];
+
 export default function HomePage() {
   const router = useRouter();
   const modulesRef = useRef<HTMLDivElement>(null);
   const rewardsRef = useRef<HTMLDivElement>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [completed, setCompleted] = useState([false, false, false]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,6 +28,32 @@ export default function HomePage() {
     };
     checkAuth();
   }, [router]);
+
+  useEffect(() => {
+    // Check localStorage for module completion
+    const checkBadges = () => {
+      const c = [
+        localStorage.getItem("module-1-complete") === "true",
+        localStorage.getItem("module-2-complete") === "true",
+        localStorage.getItem("module-3-complete") === "true",
+      ];
+      setCompleted(c);
+    };
+    checkBadges();
+    // Listen for visibility change (tab focus)
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        checkBadges();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
+  const badgesEarned = completed.filter(Boolean).length;
+  const progressPercent = (badgesEarned / 3) * 100;
 
   if (checkingAuth) {
     return null; // or a spinner if you want
@@ -39,6 +72,19 @@ export default function HomePage() {
     await supabase.auth.signOut();
     router.push('/teacher/login');
   };
+
+  // Find the highest completed module index
+  const highestCompletedIdx = completed.lastIndexOf(true);
+
+  // SVG badge icon for stepper (star + ribbon)
+  const BadgeSVG = (
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="13" fill="#FFD700" stroke="#B8860B" strokeWidth="2"/>
+      <polygon points="16,8 18,14 24,14 19,17 21,23 16,19.5 11,23 13,17 8,14 14,14" fill="#fff" stroke="#B8860B" strokeWidth="1"/>
+      <rect x="12" y="24" width="2.5" height="6" rx="1" fill="#B8860B"/>
+      <rect x="17.5" y="24" width="2.5" height="6" rx="1" fill="#B8860B"/>
+    </svg>
+  );
 
   return (
     <div className="min-h-screen w-full bg-[#fdf6ee] flex flex-col relative overflow-x-hidden">
@@ -184,69 +230,96 @@ export default function HomePage() {
             <div className="w-full max-w-md mb-6 relative flex flex-col items-center">
               {/* Progress bar */}
               <div className="w-full bg-yellow-100 rounded-full h-4 overflow-hidden relative mt-5">
-                {/* Progress fill (0% for now) */}
-                <div className="bg-yellow-400 h-4 rounded-full transition-all absolute left-0 top-0" style={{ width: '0%' }}></div>
+                {/* Progress fill */}
+                <div className="bg-yellow-400 h-4 rounded-full transition-all absolute left-0 top-0" style={{ width: `${progressPercent}%` }}></div>
               </div>
               {/* Stopping points: 1, 2, 3 */}
               <div className="absolute left-0 top-[calc(50%+5px)] w-full flex justify-between items-center -translate-y-1/2 z-10 px-1">
-                {/* Stop 1 at 0% */}
-                <div className="flex flex-col items-center" style={{ left: '-7px' }}>
-                  <div className="w-10 h-10 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center text-lg shadow">
-                    <span className="text-gray-400 font-bold">1</span>
+                {/* Step 1 */}
+                <div className="flex flex-col items-center" style={{ left: '-17px' }}>
+                  <div className={`w-10 h-10 rounded-full border-4 flex items-center justify-center text-lg shadow ${highestCompletedIdx > 0 ? 'bg-yellow-300 border-yellow-400 text-white' : 'bg-white border-gray-300 text-gray-400'}`}>
+                    {highestCompletedIdx === 0 ? (
+                      <img src="/badge.png" alt="Badge" className="w-8 h-8 object-contain" style={{ borderRadius: '50%' }} />
+                    ) : highestCompletedIdx > 0 ? (
+                      <span className="text-2xl font-bold">✓</span>
+                    ) : (
+                      <span className="font-bold">1</span>
+                    )}
                   </div>
                 </div>
-                {/* Stop 2 at 50% */}
+                {/* Step 2 */}
                 <div className="flex flex-col items-center" style={{ left: '50%' }}>
-                  <div className="w-10 h-10 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center text-lg shadow">
-                    <span className="text-gray-400 font-bold">2</span>
+                  <div className={`w-10 h-10 rounded-full border-4 flex items-center justify-center text-lg shadow ${highestCompletedIdx > 1 ? 'bg-yellow-300 border-yellow-400 text-white' : 'bg-white border-gray-300 text-gray-400'}`}>
+                    {highestCompletedIdx === 1 ? (
+                      <img src="/badge.png" alt="Badge" className="w-8 h-8 object-contain" style={{ borderRadius: '50%' }} />
+                    ) : highestCompletedIdx > 1 ? (
+                      <span className="text-2xl font-bold">✓</span>
+                    ) : (
+                      <span className="font-bold">2</span>
+                    )}
                   </div>
                 </div>
-                {/* Stop 3 at 100% */}
+                {/* Step 3 */}
                 <div className="flex flex-col items-center" style={{ left: '100%' }}>
-                  <div className="w-10 h-10 rounded-full bg-white border-4 border-gray-300 flex items-center justify-center text-lg shadow">
-                    <span className="text-gray-400 font-bold">3</span>
+                  <div className={`w-10 h-10 rounded-full border-4 flex items-center justify-center text-lg shadow ${highestCompletedIdx > 2 ? 'bg-yellow-300 border-yellow-400 text-white' : 'bg-white border-gray-300 text-gray-400'}`}>
+                    {highestCompletedIdx === 2 ? (
+                      <img src="/badge.png" alt="Badge" className="w-8 h-8 object-contain" style={{ borderRadius: '50%' }} />
+                    ) : highestCompletedIdx > 2 ? (
+                      <span className="text-2xl font-bold">✓</span>
+                    ) : (
+                      <span className="font-bold">3</span>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="text-lg text-gray-600 mb-8 font-semibold text-center">0/3 badges earned</div>
+            <div className="text-lg text-gray-600 mb-8 font-semibold text-center">{badgesEarned}/3 badges earned</div>
             {/* Reward slots */}
             <div className="flex gap-24 justify-center items-center w-full mt-4">
               {/* Slot 1 */}
               <div className="flex flex-col items-center">
-                <div className="w-28 h-28 bg-gray-200 rounded-xl shadow-inner flex items-center justify-center mb-2 border-2 border-gray-300">
-                  {/* Lock SVG */}
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="10" width="16" height="10" rx="3" fill="#b0b0b0"/>
-                    <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    <circle cx="12" cy="16" r="2" fill="#888"/>
-                  </svg>
+                <div className="w-28 h-28 bg-gray-200 rounded-xl shadow-inner flex items-center justify-center mb-2 border-2 border-gray-300 overflow-hidden">
+                  {completed[0] ? (
+                    <img src={rewardBadges[0]} alt="Reward 1" className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="4" y="10" width="16" height="10" rx="3" fill="#b0b0b0"/>
+                      <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                      <circle cx="12" cy="16" r="2" fill="#888"/>
+                    </svg>
+                  )}
                 </div>
-                <span className="text-xs font-bold text-gray-500 mt-1">Locked</span>
+                <span className={`text-xs font-bold mt-1 ${completed[0] ? 'text-yellow-700' : 'text-gray-500'}`}>{completed[0] ? 'Unlocked!' : 'Locked'}</span>
               </div>
               {/* Slot 2 */}
               <div className="flex flex-col items-center">
-                <div className="w-28 h-28 bg-gray-200 rounded-xl shadow-inner flex items-center justify-center mb-2 border-2 border-gray-300">
-                  {/* Lock SVG */}
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="10" width="16" height="10" rx="3" fill="#b0b0b0"/>
-                    <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    <circle cx="12" cy="16" r="2" fill="#888"/>
-                  </svg>
+                <div className="w-28 h-28 bg-gray-200 rounded-xl shadow-inner flex items-center justify-center mb-2 border-2 border-gray-300 overflow-hidden">
+                  {completed[1] ? (
+                    <img src={rewardBadges[1]} alt="Reward 2" className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="4" y="10" width="16" height="10" rx="3" fill="#b0b0b0"/>
+                      <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                      <circle cx="12" cy="16" r="2" fill="#888"/>
+                    </svg>
+                  )}
                 </div>
-                <span className="text-xs font-bold text-gray-500 mt-1">Locked</span>
+                <span className={`text-xs font-bold mt-1 ${completed[1] ? 'text-yellow-700' : 'text-gray-500'}`}>{completed[1] ? 'Unlocked!' : 'Locked'}</span>
               </div>
               {/* Slot 3 */}
               <div className="flex flex-col items-center">
-                <div className="w-28 h-28 bg-gray-200 rounded-xl shadow-inner flex items-center justify-center mb-2 border-2 border-gray-300">
-                  {/* Lock SVG */}
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="10" width="16" height="10" rx="3" fill="#b0b0b0"/>
-                    <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    <circle cx="12" cy="16" r="2" fill="#888"/>
-                  </svg>
+                <div className="w-28 h-28 bg-gray-200 rounded-xl shadow-inner flex items-center justify-center mb-2 border-2 border-gray-300 overflow-hidden">
+                  {completed[2] ? (
+                    <img src={rewardBadges[2]} alt="Reward 3" className="w-full h-full object-cover rounded-xl" />
+                  ) : (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="4" y="10" width="16" height="10" rx="3" fill="#b0b0b0"/>
+                      <path d="M8 10V7a4 4 0 1 1 8 0v3" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                      <circle cx="12" cy="16" r="2" fill="#888"/>
+                    </svg>
+                  )}
                 </div>
-                <span className="text-xs font-bold text-gray-500 mt-1">Locked</span>
+                <span className={`text-xs font-bold mt-1 ${completed[2] ? 'text-yellow-700' : 'text-gray-500'}`}>{completed[2] ? 'Unlocked!' : 'Locked'}</span>
               </div>
             </div>
           </div>

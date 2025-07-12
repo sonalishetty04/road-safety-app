@@ -1,9 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { FC, ButtonHTMLAttributes } from "react";
+
 const Button: FC<ButtonHTMLAttributes<HTMLButtonElement>> = (props) => (
-  <button {...props} className="rounded-full font-extrabold px-8 py-4 text-lg shadow-lg transition-all" />
+  <button
+    {...props}
+    className={
+      [
+        "rounded-xl font-extrabold px-5 py-2 text-base shadow-lg transition-all border-2 border-orange-300 text-orange-700 bg-white hover:bg-orange-50",
+        props.className || ""
+      ].join(" ")
+    }
+  />
 );
 
 const pollSlides = [
@@ -25,6 +34,20 @@ const pollSlides = [
     correct: "Yes",
     explanation: "Always look both ways before crossing, even if the signal is green. Sometimes vehicles may not stop in time.",
   },
+  // New poll question 1
+  {
+    question: "Is it safe to use your phone while walking across the street?",
+    options: ["Yes", "No"],
+    correct: "No",
+    explanation: "You should never use your phone while crossing the street. Always pay attention to your surroundings.",
+  },
+  // New poll question 2
+  {
+    question: "What should you do if you see a school bus stopped with its stop sign out?",
+    options: ["Keep walking", "Wait until the bus moves"],
+    correct: "Wait until the bus moves",
+    explanation: "Always wait until the school bus moves and it is safe before crossing. Children may be getting on or off the bus.",
+  },
 ];
 
 const slides = [
@@ -32,8 +55,8 @@ const slides = [
     type: "video",
     content: (
       <div className="flex flex-col items-center w-full">
-        <h2 className="text-3xl font-extrabold mb-6 text-yellow-700 drop-shadow-lg">Watch: Road Safety Signals</h2>
-        <div className="w-full aspect-video max-w-5xl rounded-3xl overflow-hidden shadow-2xl border-8 border-yellow-300 bg-yellow-100 flex items-center justify-center" style={{ minHeight: 400 }}>
+        <h2 className="text-3xl font-extrabold mb-6 text-orange-700 drop-shadow-lg">Watch: Road Safety Signals</h2>
+        <div className="w-full aspect-video max-w-5xl rounded-3xl overflow-hidden shadow-2xl border-8 border-orange-300 bg-orange-100 flex items-center justify-center" style={{ minHeight: 400 }}>
           <iframe
             width="100%"
             height="100%"
@@ -66,10 +89,35 @@ export default function Module1Page() {
   const [pollState, setPollState] = useState(
     pollSlides.map(() => ({ selected: null as string | null, revealed: false }))
   );
+  // Track if answer slide is being shown for each poll
+  const [answerSlides, setAnswerSlides] = useState(
+    pollSlides.map(() => false)
+  );
+
+  useEffect(() => {
+    if (slide > 0 && slide <= pollSlides.length) {
+      const pollIdx = slide - 1;
+      const question = pollSlides[pollIdx].question;
+      // setTypedQuestion(""); // Removed typing animation
+      let i = 0;
+      const interval = setInterval(() => {
+        // setTypedQuestion((prev) => prev + question[i]); // Removed typing animation
+        i++;
+        if (i >= question.length) clearInterval(interval);
+      }, 24);
+      return () => clearInterval(interval);
+    }
+  }, [slide]);
 
   const allQuizzesRevealed = pollState.every((s) => s.revealed);
   // If not all quizzes are revealed, don't allow access to the end slide
   const maxAccessibleSlide = allQuizzesRevealed ? slides.length - 1 : pollSlides.length;
+
+  useEffect(() => {
+    if (slide === slides.length - 1 && allQuizzesRevealed) {
+      localStorage.setItem('module-1-complete', 'true');
+    }
+  }, [slide, allQuizzesRevealed]);
 
   const handleSelect = (pollIdx: number, option: string) => {
     setPollState((prev) =>
@@ -78,112 +126,226 @@ export default function Module1Page() {
       )
     );
   };
-  const handleReveal = (pollIdx: number) => {
-    setPollState((prev) =>
-      prev.map((s, i) =>
-        i === pollIdx ? { ...s, revealed: true } : s
-      )
-    );
+
+  // When Next is clicked on a poll, show answer slide if not already shown
+  const handleNext = () => {
+    if (slide > 0 && slide <= pollSlides.length) {
+      const pollIdx = slide - 1;
+      if (!answerSlides[pollIdx]) {
+        // Show answer slide
+        setAnswerSlides((prev) => prev.map((a, i) => (i === pollIdx ? true : a)));
+        setPollState((prev) => prev.map((s, i) => (i === pollIdx ? { ...s, revealed: true } : s)));
+      } else {
+        // Go to next poll
+        setSlide((s) => s + 1);
+      }
+    } else {
+      setSlide((s) => s + 1);
+    }
   };
-  const handleNav = (dir: number) => {
-    setSlide((s) => {
-      let next = s + dir;
-      if (next < 0) next = 0;
-      if (next > maxAccessibleSlide) next = maxAccessibleSlide;
-      return next;
-    });
+
+  const handlePrev = () => {
+    if (slide > 0) {
+      setSlide((s) => s - 1);
+    }
   };
 
   // Button color classes for poll options
   const pollColors = [
-    "bg-yellow-300 border-yellow-400 text-yellow-900 hover:bg-yellow-400",
-    "bg-pink-300 border-pink-400 text-pink-900 hover:bg-pink-400"
+    "bg-orange-300 border-orange-400 text-orange-900 hover:bg-orange-400",
+    "bg-orange-200 border-orange-300 text-orange-900 hover:bg-orange-300"
   ];
+
+  // Animation CSS
+  const pollAnimation =
+    "animate-slide-in";
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       {/* Home button top left */}
       <div className="w-full max-w-5xl flex justify-start mb-4">
-        <Button onClick={() => router.push('/teacher/home')} className="bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-full px-6 py-3 text-lg font-bold shadow-md">
-          🏠 Home
+        <Button onClick={() => router.push('/teacher/home')}>
+   Home
         </Button>
       </div>
-      <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl p-12 flex flex-col items-center">
+      <div className="w-full max-w-5xl bg-orange-100 rounded-3xl shadow-2xl p-12 flex flex-col items-center">
         {/* Slider Content */}
-        {slide === 0 && slides[0].content}
+        {slide === 0 && (
+          <div className="flex flex-col items-center w-full">
+            <h2 className="text-3xl font-extrabold mb-6 text-orange-700 drop-shadow-lg">Watch: Road Safety Signals</h2>
+            <div className="w-full aspect-video max-w-5xl rounded-3xl overflow-hidden shadow-2xl border-8 border-orange-300 bg-orange-100 flex items-center justify-center" style={{ minHeight: 400 }}>
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/_NeEF1fwT4k"
+                title="Road Safety Signals"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full min-h-[400px]"
+              ></iframe>
+            </div>
+          </div>
+        )}
         {slide > 0 && slide <= pollSlides.length && (() => {
           const pollIdx = slide - 1;
           const poll = pollSlides[pollIdx];
           const { selected, revealed } = pollState[pollIdx];
-          return (
-            <div className="flex flex-col items-center w-full">
-              <h2 className="text-3xl font-extrabold mb-6 text-pink-700 drop-shadow-lg">Live Poll</h2>
-              <p className="mb-8 text-2xl font-bold text-gray-800 text-center">{poll.question}</p>
-              <div className="flex gap-10 mb-8">
-                {poll.options.map((option, idx) => (
-                  <Button
-                    key={option}
-                    onClick={() => handleSelect(pollIdx, option)}
-                    className={`rounded-full px-10 py-6 text-2xl font-extrabold border-4 shadow-lg transition-all duration-200 flex items-center justify-center ${pollColors[idx]} ${selected === option ? 'scale-110 ring-4 ring-pink-300 bg-green-200 border-green-400 text-green-900' : ''}`}
-                    disabled={revealed}
-                  >
-                    {selected === option && <span className="mr-2 text-2xl">✔️</span>}
-                    {option}
-                  </Button>
-                ))}
-              </div>
-              {!revealed && (
-                <Button
-                  onClick={() => handleReveal(pollIdx)}
-                  className="mt-2 bg-green-300 border-green-400 text-green-900 hover:bg-green-400 rounded-full px-10 py-4 text-xl font-extrabold shadow-lg"
-                  disabled={selected === null}
-                >
-                  Reveal Answer
-                </Button>
-              )}
-              {revealed && (
-                <div className="mt-6 text-center">
-                  <div className={`text-2xl font-extrabold ${selected === poll.correct ? 'text-green-600' : 'text-red-600'}`}>
-                    {selected === poll.correct ? '✅ Correct!' : '❌ Incorrect'}
+          const showAnswer = answerSlides[pollIdx];
+          // Alternate mascot side
+          const mascotLeft = pollIdx % 2 === 0;
+          // Is the answer correct?
+          const isCorrect = selected === poll.correct;
+          if (!showAnswer) {
+            // Poll question/options
+            return (
+              <div key={`poll-${slide}`} className="flex flex-col md:flex-row items-center w-full gap-8 animate-slide-in">
+                {mascotLeft && (
+                  <div className="flex-1 flex justify-center items-center">
+                    <img src="/mascot-left.png" alt="Mascot" className="w-94 h-94 object-contain drop-shadow-xl" />
                   </div>
-                  <div className="mt-4 text-lg text-gray-700 font-bold bg-yellow-100 rounded-xl p-4 border-2 border-yellow-300">
-                    {poll.explanation}
+                )}
+                <div className="flex-1 flex flex-col items-center md:items-start">
+                  <h2 className="text-3xl font-extrabold mb-6 text-orange-700 drop-shadow-lg">Live Poll</h2>
+                  <p className="mb-8 text-2xl font-bold text-gray-800 text-center md:text-left">{poll.question}</p>
+                  <div className="flex flex-col gap-6 mb-8 w-full">
+                    {poll.options.map((option) => (
+                      <Button
+                        key={option}
+                        onClick={() => handleSelect(pollIdx, option)}
+                        className={`rounded-xl px-8 py-3 text-lg font-extrabold border-2 border-orange-300 text-orange-700 bg-white hover:bg-orange-50 shadow-lg transition-all duration-200 flex items-center justify-center w-full ${selected === option ? (option === poll.correct ? 'scale-105 ring-4 ring-orange-200 bg-orange-100 border-orange-400 text-orange-900' : 'scale-105 ring-4 ring-orange-200 bg-orange-50 border-orange-400 text-orange-900') : ''}`}
+                        disabled={selected !== null}
+                      >
+                        {selected === option && (option === poll.correct ? <span className="mr-2 text-2xl">✔️</span> : <span className="mr-2 text-2xl">❌</span>)}
+                        {option}
+                      </Button>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
-          );
+                {!mascotLeft && (
+                  <div className="flex-1 flex justify-center items-center">
+                    <img src="/mascot-right.png" alt="Mascot" className="w-94 h-94 object-contain drop-shadow-xl" />
+                  </div>
+                )}
+              </div>
+            );
+          } else {
+            // Answer slide
+            return (
+              <div key={`answer-${slide}`} className="flex flex-col md:flex-row items-center w-full gap-8 animate-slide-in">
+                <div className="flex-1 flex justify-center items-center">
+                  <img
+                    src={isCorrect ? "/celebrate.png" : "/better_luck.png"}
+                    alt={isCorrect ? "Celebrate Mascot" : "Better Luck Mascot"}
+                    className="w-94 h-94 object-contain drop-shadow-xl"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col items-center md:items-start">
+                  <h2 className={`text-3xl font-extrabold mb-6 ${isCorrect ? "text-green-700" : "text-orange-700"} drop-shadow-lg`}>{isCorrect ? "Great Job!" : "Better Luck Next Time!"}</h2>
+                  <div className="mb-4 text-2xl font-bold text-gray-800 text-center md:text-left">
+                    {isCorrect ? (
+                      <>You got it right!<br />{poll.explanation}</>
+                    ) : (
+                      <>
+                        The correct answer was: <span className="font-extrabold text-orange-700">{poll.correct}</span>
+                        <br />{poll.explanation}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
         })()}
         {slide === slides.length - 1 && allQuizzesRevealed && (
           <div className="flex flex-col items-center w-full">
-            <h2 className="text-4xl font-extrabold mb-6 text-green-700 drop-shadow-lg">🎉 Great job! You’ve completed Module 1!</h2>
-            <p className="mb-8 text-2xl font-bold text-blue-700 text-center">You’re on your way to being a Road Safety Star!</p>
-            <Button
-              onClick={() => router.push('/teacher/module-2')}
-              className="bg-pink-300 border-pink-400 text-pink-900 hover:bg-pink-400 rounded-full px-12 py-6 text-2xl font-extrabold shadow-lg mt-4"
-            >
-              Next Module ➡️
-            </Button>
+            <h2 className="text-4xl font-extrabold mb-6 text-orange-700 drop-shadow-lg">Hurray! You've completed Module 1!</h2>
+            <img src="/complete-module.png" alt="Modules Complete Mascot" className="w-72 h-72 object-contain mb-6 " />
+            <p className="mb-8 text-2xl font-bold text-orange-700 text-center">You're on your way to being a Road Safety Star!</p>
+        
           </div>
         )}
         {/* Navigation */}
-        <div className="flex justify-between w-full mt-12">
-          <Button
-            onClick={() => handleNav(-1)}
-            disabled={slide === 0}
-            className="bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-full px-8 py-4 text-lg font-bold shadow-md"
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={() => handleNav(1)}
-            disabled={slide === maxAccessibleSlide}
-            className="bg-blue-200 text-blue-900 hover:bg-blue-300 rounded-full px-8 py-4 text-lg font-bold shadow-md"
-          >
-            Next
-          </Button>
-        </div>
+        {slide === 0 ? (
+          <div className="flex justify-end w-full mt-12">
+            <Button
+              onClick={() => setSlide((s) => s + 1)}
+              disabled={slide === maxAccessibleSlide}
+              className="rounded-xl"
+            >
+              Next
+            </Button>
+          </div>
+        ) : slide > 0 && slide <= pollSlides.length ? (
+          <div className="flex justify-between w-full mt-12">
+            <Button
+              onClick={handlePrev}
+              disabled={slide === 0}
+              className="rounded-xl"
+            >
+              Previous
+            </Button>
+            {slide === slides.length - 1 && allQuizzesRevealed ? (
+              <Button
+                onClick={() => router.push('/teacher/module-2')}
+                className="rounded-xl"
+              >
+                Next Module
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                disabled={(() => {
+                  const pollIdx = slide - 1;
+                  const { selected } = pollState[pollIdx];
+                  // Only allow Next if an option is selected
+                  if (!answerSlides[pollIdx]) return selected === null;
+                  return false;
+                })()}
+                className="rounded-xl"
+              >
+                Next
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="flex justify-between w-full mt-12">
+            <Button
+              onClick={handlePrev}
+              disabled={slide === 0}
+              className="rounded-xl"
+            >
+              Previous
+            </Button>
+            {slide === slides.length - 1 && allQuizzesRevealed ? (
+              <Button
+                onClick={() => router.push('/teacher/module-2')}
+                className="rounded-xl"
+              >
+                Next Module
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setSlide((s) => s + 1)}
+                disabled={slide === maxAccessibleSlide}
+                className="rounded-xl"
+              >
+                Next
+              </Button>
+            )}
+          </div>
+        )}
       </div>
+      {/* Animation keyframes */}
+      <style>{`
+        @keyframes slide-in {
+          0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.7s cubic-bezier(.4,0,.2,1);
+        }
+      `}</style>
     </div>
   );
 } 
